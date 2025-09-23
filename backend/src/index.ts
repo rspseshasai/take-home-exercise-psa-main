@@ -103,11 +103,45 @@ app.post('/api/projects', async (req, res) => {
 
 // PUT /api/projects/:id - Update project (STUB - TODO for candidates)
 app.put('/api/projects/:id', async (req, res) => {
-  // TODO: Implement project update
-  // Expected body: { name?: string, completed?: boolean }
-  // Business rules:
-  // - Cannot mark project as completed if it has incomplete tasks
-  res.status(501).json({ error: 'Not implemented - TODO for candidate' })
+  try {
+    const { id } = req.params
+    const { name, completed } = req.body
+
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: { tasks: true }
+    })
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' })
+    }
+
+    // If trying to mark as completed, ensure all tasks are completed
+    if (completed === true) {
+      const hasIncompleteTasks = project.tasks.some(task => !task.completed)
+      if (hasIncompleteTasks) {
+        return res.status(400).json({ error: 'Cannot mark project as completed while it has incomplete tasks' })
+      }
+    }
+
+    // Prepare update data
+    const updateData: any = {}
+    if (typeof name === 'string' && name.trim() !== '') updateData.name = name.trim()
+    if (typeof completed === 'boolean') updateData.completed = completed
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' })
+    }
+
+    const updatedProject = await prisma.project.update({
+      where: { id },
+      data: updateData
+    })
+
+    res.json(updatedProject)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update project' })
+  }
 })
 
 // POST /api/projects/:id/tasks - Create tasks in project (STUB - TODO for candidates)
