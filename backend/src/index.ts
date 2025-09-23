@@ -146,13 +146,63 @@ app.put('/api/projects/:id', async (req, res) => {
 
 // POST /api/projects/:id/tasks - Create tasks in project (STUB - TODO for candidates)
 app.post('/api/projects/:id/tasks', async (req, res) => {
-  // TODO: Implement batch task creation
-  // Expected body: { tasks: Array<{ title: string }> }
-  // Business rules:
-  // - Cannot add tasks to completed projects
-  // - Use batch insertion for efficiency
-  // Response: Array of created task objects
-  res.status(501).json({ error: 'Not implemented - TODO for candidate' })
+  try {
+    const { id } = req.params
+    const { tasks } = req.body
+
+    // Validate tasks array
+    if (!Array.isArray(tasks) || tasks.length === 0) {
+      return res.status(400).json({ error: 'tasks must be a non-empty array' })
+    }
+
+    // Validate each task entry
+    const invalid = tasks.find((t: any) => !t || typeof t.title !== 'string' || t.title.trim() === '')
+    if (invalid) {
+      return res.status(400).json({ error: 'Each task must have a non-empty title string' })
+    }
+
+    // Check if project exists and is not completed
+    const project = await prisma.project.findUnique({
+      where: { id }
+    })
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' })
+    }
+    if (project.completed) {
+      return res.status(400).json({ error: 'Cannot add tasks to a completed project' })
+    }
+
+    // Prepare data for batch insertion
+    const now = new Date()
+    const data = tasks.map((t: any) => ({
+      title: t.title.trim(),
+      completed: false,
+      projectId: id,
+      createdAt: now,
+    }))
+
+    // Batch insert
+    await prisma.task.createMany({
+      data
+    })
+
+    // Retrieve created tasks (by createdAt and projectId)
+    const createdTasks = await prisma.task.findMany({
+      where: {
+        projectId: id,
+        createdAt: {
+          gte: now,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    res.status(201).json(createdTasks)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create tasks' })
+  }
 })
 
 // PUT /api/tasks/:id - Update task (COMPLETE)
