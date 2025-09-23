@@ -57,13 +57,48 @@ app.get('/api/projects/:id', async (req, res) => {
 
 // POST /api/projects - Create new projects (STUB - TODO for candidates)
 app.post('/api/projects', async (req, res) => {
-  // TODO: Implement batch project creation
-  // Expected body: { projects: Array<{ name: string }> }
-  // Business rules:
-  // - New projects should have completed: false by default
-  // - Use batch insertion for efficiency
-  // Response: Array of created project objects
-  res.status(501).json({ error: 'Not implemented - TODO for candidate' })
+  try {
+    const { projects } = req.body
+
+    if (!Array.isArray(projects) || projects.length === 0) {
+      return res.status(400).json({ error: 'projects must be a non-empty array' })
+    }
+
+    // Validate each project entry
+    const invalid = projects.find((p: any) => !p || typeof p.name !== 'string' || p.name.trim() === '')
+    if (invalid) {
+      return res.status(400).json({ error: 'Each project must have a non-empty name string' })
+    }
+
+    // Prepare data for batch insertion; enforce completed: false
+    const now = new Date()
+    const data = projects.map((p: any) => ({
+      name: p.name.trim(),
+      completed: false,
+      createdAt: now,
+    }))
+
+    // Batch insert
+    await prisma.project.createMany({
+      data
+    })
+
+    // Retrieve created projects. We filter by createdAt >= now to return the inserted rows.
+    const createdProjects = await prisma.project.findMany({
+      where: {
+        createdAt: {
+          gte: now,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
+
+    res.status(201).json(createdProjects)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create projects' })
+  }
 })
 
 // PUT /api/projects/:id - Update project (STUB - TODO for candidates)
