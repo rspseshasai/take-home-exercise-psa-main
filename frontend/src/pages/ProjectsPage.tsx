@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Table, Button, Tag, Space, Typography, Card, notification, Modal, Form, Input } from 'antd'
-import { PlusOutlined, EyeOutlined } from '@ant-design/icons'
+import { PlusOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { projectsApi } from '../services/api'
 import { Project } from '../types'
@@ -105,7 +105,7 @@ const ProjectsPage: React.FC = () => {
               { text: 'Completed', value: true },
               { text: 'In Progress', value: false },
             ]}
-            onFilter={(value: boolean | string, record: Project) => record.completed === value}
+            onFilter={(value: boolean | React.Key, record: Project) => record.completed === value}
           />
           <Column
             title="Tasks"
@@ -124,6 +124,7 @@ const ProjectsPage: React.FC = () => {
           <Column
             title="Actions"
             key="actions"
+            width={140}
             render={(_, record: Project) => (
               <Space size="middle">
                 <Button
@@ -133,6 +134,38 @@ const ProjectsPage: React.FC = () => {
                 >
                   View Details
                 </Button>
+                <Button
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  danger
+                  onClick={() => {
+                    Modal.confirm({
+                      title: 'Delete Project',
+                      content: 'Are you sure you want to delete this project? This action cannot be undone.',
+                      okText: 'Delete',
+                      okType: 'danger',
+                      cancelText: 'Cancel',
+                      onOk: async () => {
+                        try {
+                          await projectsApi.deleteProject(record.id)
+                          notification.success({
+                            message: 'Deleted',
+                            description: 'Project deleted successfully',
+                          })
+                          fetchProjects()
+                        } catch (error: any) {
+                          notification.error({
+                            message: 'Error',
+                            description:
+                              error?.response?.data?.error ||
+                              'Failed to delete project. Only completed projects can be deleted.',
+                          })
+                        }
+                      },
+                    })
+                  }}
+                  title="Delete Project"
+                />
               </Space>
             )}
           />
