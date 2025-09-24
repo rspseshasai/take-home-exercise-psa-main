@@ -19,7 +19,7 @@ export const projectsApi = {
     return response.data
   },
 
-  // Stub endpoints - TODO for candidates to implement
+  // Stub endpoints - (COMPLETE)
   createProject: async (name: string): Promise<Project> => {
     const response = await api.post('/api/projects', { projects: [{ name }] })
     return response.data[0] // Return the first (and only) project from the batch

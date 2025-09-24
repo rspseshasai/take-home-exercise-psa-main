@@ -55,7 +55,7 @@ app.get('/api/projects/:id', async (req, res) => {
   }
 })
 
-// POST /api/projects - Create new projects (STUB - TODO for candidates)
+// POST /api/projects - Create new projects (COMPLETE)
 app.post('/api/projects', async (req, res) => {
   try {
     const { projects } = req.body
@@ -101,7 +101,7 @@ app.post('/api/projects', async (req, res) => {
   }
 })
 
-// PUT /api/projects/:id - Update project (STUB - TODO for candidates)
+// PUT /api/projects/:id - Update project (COMPLETE)
 app.put('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params
@@ -173,7 +173,7 @@ app.delete('/api/projects/:id', async (req, res) => {
   }
 })
 
-// POST /api/projects/:id/tasks - Create tasks in project (STUB - TODO for candidates)
+// POST /api/projects/:id/tasks - Create tasks in project (COMPLETE)
 app.post('/api/projects/:id/tasks', async (req, res) => {
   try {
     const { id } = req.params
