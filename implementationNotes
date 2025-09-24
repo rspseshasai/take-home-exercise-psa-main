@@ -1,17 +1,31 @@
-1. If i complete the last open task in the project, Entire project state should be completed. (Future Work?)
+Notes on extra features:
 
-2. Edit in the projects list page, not only on projects details page. (Future Work)
 
-3. Add loggers (Future Work)
+Implemented/Done:
 
-4. auto-mark project as in progress if a completed project's task is reopened via checkbox (Done)
+Auto-mark project as in progress if a completed project's task is reopened via checkbox.
 
-5. add DELETE /api/projects/:id endpoint to allow deleting only completed projects (Done)
+Add DELETE /api/projects/:id endpoint to allow deleting only completed projects.
 
-6. add delete project UI action with confirmation and restrict deletion to completed projects only (Done)
+Add delete project UI action in ProjectsPage with confirmation and restrict deletion to completed projects only.
 
-7. Allow users to add comments or notes to projects and tasks for better collaboration. (Future Work)
+Add toggle switch for dark theme.
 
-8. Enable selecting multiple tasks or projects for bulk completion, deletion, or status change. (Future Work)
+Add delete project button next to edit in project details page with confirmation dialog.
 
-9. Allow archiving completed projects instead of deleting, for historical reference. (Future Work)
+
+Future Work:
+
+If the last open task in a project is completed, mark the entire project as completed.
+
+Allow editing in the projects list page (not only on the project details page).
+
+Add loggers.
+
+Allow users to add comments or notes to projects and tasks for better collaboration.
+
+Enable selecting multiple tasks or projects for bulk completion, deletion, or status change.
+
+Allow archiving completed projects instead of deleting (for historical reference).
+
+Allow tasks to have subtasks for more granular tracking.
