@@ -33,6 +33,7 @@ const ProjectDetailPage: React.FC = () => {
   const [addTaskForm] = Form.useForm()
   const [editMode, setEditMode] = useState(false)
   const [editForm] = Form.useForm()
+  const [deleting, setDeleting] = useState(false)
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -191,6 +192,37 @@ const ProjectDetailPage: React.FC = () => {
     }
   } 
 
+  const handleDeleteProject = async () => {
+    if (!project) return
+    Modal.confirm({
+      title: 'Delete Project',
+      content: 'Are you sure you want to delete this project? This action cannot be undone.',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        setDeleting(true)
+        try {
+          await projectsApi.deleteProject(project.id)
+          notification.success({
+            message: 'Deleted',
+            description: 'Project deleted successfully',
+          })
+          navigate('/')
+        } catch (error: any) {
+          notification.error({
+            message: 'Error',
+            description:
+              error?.response?.data?.error ||
+              'Failed to delete project. Only completed projects can be deleted.',
+          })
+        } finally {
+          setDeleting(false)
+        }
+      },
+    })
+  }
+
   if (loading || !project) {
     return <div>Loading...</div>
   }
@@ -224,6 +256,14 @@ const ProjectDetailPage: React.FC = () => {
                     icon={<EditOutlined />}
                     style={{ marginLeft: 8 }}
                     onClick={handleEditClick}
+                  />
+                  <Button
+                    type="text"
+                    icon={<DeleteOutlined />}
+                    danger
+                    style={{ marginLeft: 4 }}
+                    loading={deleting}
+                    onClick={handleDeleteProject}
                   />
                 </Title>
                 <Space size="middle">
