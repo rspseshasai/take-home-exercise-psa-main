@@ -96,23 +96,36 @@ const ProjectDetailPage: React.FC = () => {
     const updatedTasks = project.tasks.map(t =>
       t.id === task.id ? { ...t, completed: !t.completed } : t
     )
-    setProject({ ...project, tasks: updatedTasks })
+    let updatedProject = { ...project, tasks: updatedTasks }
+
+    // If unchecking a task and project is completed, set project to in progress
+    if (project.completed && task.completed) {
+      updatedProject = { ...updatedProject, completed: false }
+    }
+
+    setProject(updatedProject)
 
     try {
       // Call API to update task
       await projectsApi.updateTask(task.id, { completed: !task.completed })
 
-      notification.success({
-        message: 'Success',
-        description: `Task ${!task.completed ? 'completed' : 'reopened'} successfully`,
-      })
+      // If unchecking a task and project is completed, update project status as well
+      if (project.completed && task.completed) {
+        await projectsApi.updateProject(project.id, { completed: false })
+        notification.info({
+          message: 'Project status updated',
+          description: 'Project marked as In Progress because a task was reopened.',
+        })
+        fetchProject()
+      } else {
+        notification.success({
+          message: 'Success',
+          description: `Task ${!task.completed ? 'completed' : 'reopened'} successfully`,
+        })
+      }
     } catch (error) {
       // Rollback optimistic update on error
-      const rolledBackTasks = project.tasks.map(t =>
-        t.id === task.id ? { ...t, completed: task.completed } : t
-      )
-      setProject({ ...project, tasks: rolledBackTasks })
-
+      setProject(project)
       notification.error({
         message: 'Error',
         description: 'Failed to update task. Please try again.',
