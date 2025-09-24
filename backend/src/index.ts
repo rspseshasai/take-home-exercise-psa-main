@@ -144,6 +144,35 @@ app.put('/api/projects/:id', async (req, res) => {
   }
 })
 
+// DELETE /api/projects/:id - Delete project (only if completed)
+app.delete('/api/projects/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+
+    // Check if project exists
+    const project = await prisma.project.findUnique({
+      where: { id }
+    })
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' })
+    }
+
+    if (!project.completed) {
+      return res.status(400).json({ error: 'Only completed projects can be deleted' })
+    }
+
+    // Delete the project (tasks should be deleted via cascade or manually if needed)
+    await prisma.project.delete({
+      where: { id }
+    })
+
+    res.status(204).send() // 204 No Content
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete project' })
+  }
+})
+
 // POST /api/projects/:id/tasks - Create tasks in project (STUB - TODO for candidates)
 app.post('/api/projects/:id/tasks', async (req, res) => {
   try {
