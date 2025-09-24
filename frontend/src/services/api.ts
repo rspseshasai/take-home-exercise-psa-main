@@ -30,6 +30,10 @@ export const projectsApi = {
     return response.data
   },
 
+  deleteProject: async (id: string): Promise<void> => {
+    await api.delete(`/api/projects/${id}`)
+  },
+
   createTask: async (projectId: string, title: string): Promise<Task> => {
     const response = await api.post(`/api/projects/${projectId}/tasks`, { tasks: [{ title }] })
     return response.data[0] // Return the first (and only) task from the batch
