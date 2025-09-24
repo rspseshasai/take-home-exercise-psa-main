@@ -10,6 +10,9 @@ import {
   notification,
   Checkbox,
   Popconfirm,
+  Modal,
+  Form,
+  Input,
 } from 'antd'
 import {
   PlusOutlined,
@@ -25,6 +28,8 @@ const { Title, Text } = Typography
 const ProjectDetailPage: React.FC = () => {
   const [project, setProject] = useState<ProjectWithTasks | null>(null)
   const [loading, setLoading] = useState(true)
+  const [addTaskModalVisible, setAddTaskModalVisible] = useState(false)
+  const [addTaskForm] = Form.useForm()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -51,11 +56,34 @@ const ProjectDetailPage: React.FC = () => {
   }, [id])
 
   const handleAddTask = () => {
-    // TODO: Open add task modal
-    notification.info({
-      message: 'TODO',
-      description: 'Add task functionality needs to be implemented',
-    })
+    setAddTaskModalVisible(true)
+  }
+
+  const handleAddTaskOk = async () => {
+    try {
+      const values = await addTaskForm.validateFields()
+      if (!id) return
+      // Create a single task
+      await projectsApi.createTask(id, values.title)
+      notification.success({
+        message: 'Success',
+        description: 'Task added successfully',
+      })
+      setAddTaskModalVisible(false)
+      addTaskForm.resetFields()
+      fetchProject()
+    } catch (error: any) {
+      if (error.errorFields) return // Validation error
+      notification.error({
+        message: 'Error',
+        description: error?.response?.data?.error || 'Failed to add task',
+      })
+    }
+  }
+
+  const handleAddTaskCancel = () => {
+    setAddTaskModalVisible(false)
+    addTaskForm.resetFields()
   }
 
   const handleTaskToggle = async (task: Task) => {
@@ -210,6 +238,28 @@ const ProjectDetailPage: React.FC = () => {
           locale={{ emptyText: 'No tasks yet. Add your first task!' }}
         />
       </Card>
+
+      <Modal
+        title="Add Task"
+        open={addTaskModalVisible}
+        onOk={handleAddTaskOk}
+        onCancel={handleAddTaskCancel}
+        okText="Add"
+        destroyOnClose
+      >
+        <Form form={addTaskForm} layout="vertical" name="add_task_form">
+          <Form.Item
+            label="Task Title"
+            name="title"
+            rules={[
+              { required: true, message: 'Please enter a task title' },
+              { min: 2, message: 'Task title must be at least 2 characters' },
+            ]}
+          >
+            <Input placeholder="Enter task title" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   )
 }
