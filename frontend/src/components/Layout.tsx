@@ -1,6 +1,6 @@
 import React from 'react'
-import { Layout, Menu, Typography } from 'antd'
-import { ProjectOutlined } from '@ant-design/icons'
+import { Layout, Menu, Typography, Button } from 'antd'
+import { ProjectOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 const { Header, Content } = Layout
@@ -8,9 +8,11 @@ const { Title } = Typography
 
 interface AppLayoutProps {
   children: React.ReactNode
+  darkMode: boolean
+  onToggleDarkMode: () => void
 }
 
-const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+const AppLayout: React.FC<AppLayoutProps> = ({ children, darkMode, onToggleDarkMode }) => {
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -36,10 +38,14 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           onClick={({ key }) => navigate(key)}
           style={{ flex: 1, minWidth: 0 }}
         />
+        <Button
+          shape="circle"
+          size="large"
+          icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
+          onClick={onToggleDarkMode}
+        />
       </Header>
-      <Content style={{ padding: '20px' }}>
-        {children}
-      </Content>
+      <Content style={{ padding: '20px' }}>{children}</Content>
     </Layout>
   )
 }
