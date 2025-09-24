@@ -18,6 +18,7 @@ import {
   PlusOutlined,
   ArrowLeftOutlined,
   DeleteOutlined,
+  EditOutlined
 } from '@ant-design/icons'
 import { useParams, useNavigate } from 'react-router-dom'
 import { projectsApi } from '../services/api'
@@ -163,6 +164,17 @@ const ProjectDetailPage: React.FC = () => {
           <div>
             <Title level={2} style={{ margin: 0, marginBottom: 10 }}>
               {project.name}
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                style={{ marginLeft: 8 }}
+                onClick={() =>
+                  notification.info({
+                    message: 'Not implemented',
+                    description: 'Edit project functionality not implemented yet.',
+                  })
+                }
+              />
             </Title>
             <Space size="middle">
               <Tag color={project.completed ? 'green' : 'orange'}>
