@@ -31,6 +31,8 @@ const ProjectDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [addTaskModalVisible, setAddTaskModalVisible] = useState(false)
   const [addTaskForm] = Form.useForm()
+  const [editMode, setEditMode] = useState(false)
+  const [editForm] = Form.useForm()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
@@ -138,6 +140,44 @@ const ProjectDetailPage: React.FC = () => {
     }
   }
 
+  const handleEditClick = () => {
+    if (project) {
+      editForm.setFieldsValue({
+        name: project.name,
+        completed: project.completed,
+      })
+      setEditMode(true)
+    }
+  }
+
+  const handleEditCancel = () => {
+    setEditMode(false)
+    editForm.resetFields()
+  }
+
+  const handleEditUpdate = async () => {
+    try {
+      const values = await editForm.validateFields()
+      if (!id) return
+      await projectsApi.updateProject(id, {
+        name: values.name,
+        completed: values.completed,
+      })
+      notification.success({
+        message: 'Success',
+        description: 'Project updated successfully',
+      })
+      setEditMode(false)
+      fetchProject()
+    } catch (error: any) {
+      if (error.errorFields) return
+      notification.error({
+        message: 'Error',
+        description: error?.response?.data?.error || 'Failed to update project',
+      })
+    }
+  } 
+
   if (loading || !project) {
     return <div>Loading...</div>
   }
@@ -162,31 +202,65 @@ const ProjectDetailPage: React.FC = () => {
       <Card>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 20 }}>
           <div>
-            <Title level={2} style={{ margin: 0, marginBottom: 10 }}>
-              {project.name}
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                style={{ marginLeft: 8 }}
-                onClick={() =>
-                  notification.info({
-                    message: 'Not implemented',
-                    description: 'Edit project functionality not implemented yet.',
-                  })
-                }
-              />
-            </Title>
-            <Space size="middle">
-              <Tag color={project.completed ? 'green' : 'orange'}>
-                {project.completed ? 'Completed' : 'In Progress'}
-              </Tag>
-              <Text type="secondary">
-                Created: {new Date(project.createdAt).toLocaleDateString()}
-              </Text>
-              <Text type="secondary">
-                Tasks: {completedTasks}/{totalTasks} completed
-              </Text>
-            </Space>
+            {!editMode ? (
+              <>
+                <Title level={2} style={{ margin: 0, marginBottom: 10 }}>
+                  {project.name}
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    style={{ marginLeft: 8 }}
+                    onClick={handleEditClick}
+                  />
+                </Title>
+                <Space size="middle">
+                  <Tag color={project.completed ? 'green' : 'orange'}>
+                    {project.completed ? 'Completed' : 'In Progress'}
+                  </Tag>
+                  <Text type="secondary">
+                    Created: {new Date(project.createdAt).toLocaleDateString()}
+                  </Text>
+                  <Text type="secondary">
+                    Tasks: {completedTasks}/{totalTasks} completed
+                  </Text>
+                </Space>
+              </>
+          ) : (
+            <Form
+              form={editForm}
+              layout="inline"
+              onFinish={handleEditUpdate}
+              style={{ marginBottom: 10 }}
+            >
+              <Form.Item
+                name="name"
+                rules={[
+                  { required: true, message: 'Please enter a project name' },
+                  { min: 2, message: 'Project name must be at least 2 characters' },
+                ]}
+                style={{ marginRight: 8 }}
+              >
+                <Input placeholder="Project Name" />
+              </Form.Item>
+              <Form.Item
+                name="completed"
+                valuePropName="checked"
+                style={{ marginRight: 8 }}
+              >
+                <Checkbox>Completed</Checkbox>
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Update
+                </Button>
+              </Form.Item>
+              <Form.Item>
+                <Button onClick={handleEditCancel}>
+                  Cancel
+                </Button>
+              </Form.Item>
+            </Form>
+)}      
           </div>
           <Button onClick={() => navigate('/')} icon={<ArrowLeftOutlined />}>
             Back to Projects
